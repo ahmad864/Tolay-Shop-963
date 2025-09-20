@@ -27,5 +27,3 @@ return res;
 
 export const config = { matcher: ["/admin/:path*"] };
 
-بالنسبة لهذا الكود اين اضع الملف
-
