@@ -17,38 +17,51 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
 
-    const { email, password } = loginData
+    try {
+      const { email, password } = loginData
 
-    // تسجيل الدخول
-    const { data: signInData, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+      // محاولة تسجيل الدخول
+      const { data: signInData, error: signInError } =
+        await supabase.auth.signInWithPassword({ email, password })
 
-    if (error) {
-      alert("خطأ في تسجيل الدخول: " + error.message)
+      if (signInError) {
+        console.error("signIn error:", signInError)
+        alert("خطأ في تسجيل الدخول: " + signInError.message)
+        return
+      }
+
+      const user = signInData?.user
+      if (!user) {
+        console.error("No user returned after sign-in")
+        alert("تعذّر الحصول على بيانات المستخدم.")
+        return
+      }
+
+      // جلب الدور من جدول profiles
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single()
+
+      if (profileError) {
+        console.error("Profile fetch error:", profileError)
+        alert("تعذّر الحصول على بيانات الملف الشخصي: " + profileError.message)
+        return
+      }
+
+      // توجيه المستخدم حسب الدور
+      if (profile?.role === "admin") {
+        router.push("/admin")
+      } else {
+        router.push("/")
+      }
+    } catch (err) {
+      console.error("Unexpected login error:", err)
+      alert("حصل خطأ غير متوقع أثناء تسجيل الدخول.")
+    } finally {
+      // إيقاف حالة التحميل في جميع الأحوال
       setLoading(false)
-      return
-    }
-
-    // جلب الدور من جدول profiles
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", signInData.user.id)
-      .single()
-
-    if (profileError || !profile) {
-      alert("تعذر الحصول على بيانات المستخدم.")
-      setLoading(false)
-      return
-    }
-
-    // توجيه حسب الدور
-    if (profile.role === "admin") {
-      router.push("/admin")
-    } else {
-      router.push("/")
     }
   }
 
@@ -67,7 +80,9 @@ export default function LoginPage() {
                 type="email"
                 placeholder="example@email.com"
                 value={loginData.email}
-                onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                onChange={(e) =>
+                  setLoginData({ ...loginData, email: e.target.value })
+                }
                 required
               />
             </div>
@@ -78,7 +93,9 @@ export default function LoginPage() {
                 type="password"
                 placeholder="••••••••"
                 value={loginData.password}
-                onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                onChange={(e) =>
+                  setLoginData({ ...loginData, password: e.target.value })
+                }
                 required
               />
             </div>
