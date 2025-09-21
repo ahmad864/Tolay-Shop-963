@@ -7,11 +7,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 
-/* ------------------------------------------------------------------
-   Admin Dashboard (الكود الأصلي للوحة الإدارة – يمكنك تعديل التصميم)
--------------------------------------------------------------------*/
+/* =======================
+   لوحة تحكم الأدمن
+======================= */
 function AdminDashboard() {
   const [products, setProducts] = useState<{ id: number; name: string; price: number }[]>([])
   const [newProduct, setNewProduct] = useState({ name: "", price: "" })
@@ -24,12 +23,14 @@ function AdminDashboard() {
   const addProduct = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newProduct.name || !newProduct.price) return
-    await supabase.from("products").insert({
+    const { error } = await supabase.from("products").insert({
       name: newProduct.name,
       price: Number(newProduct.price),
     })
-    setNewProduct({ name: "", price: "" })
-    fetchProducts()
+    if (!error) {
+      setNewProduct({ name: "", price: "" })
+      fetchProducts()
+    }
   }
 
   useEffect(() => {
@@ -39,6 +40,7 @@ function AdminDashboard() {
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-6 text-[#7f5c7e]">لوحة التحكم</h1>
+
       <Tabs defaultValue="products">
         <TabsList>
           <TabsTrigger value="products">المنتجات</TabsTrigger>
@@ -63,7 +65,9 @@ function AdminDashboard() {
                   value={newProduct.price}
                   onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
                 />
-                <Button type="submit" className="bg-[#7f5c7e] hover:bg-[#6b4c6a]">إضافة</Button>
+                <Button type="submit" className="bg-[#7f5c7e] hover:bg-[#6b4c6a]">
+                  إضافة
+                </Button>
               </form>
               <ul className="space-y-2">
                 {products.map((p) => (
@@ -90,9 +94,9 @@ function AdminDashboard() {
   )
 }
 
-/* ------------------------------------------------------------------
-   صفحة الأدمن مع الحماية
--------------------------------------------------------------------*/
+/* =======================
+   صفحة الأدمن مع التحقق
+======================= */
 export default function AdminPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -100,24 +104,21 @@ export default function AdminPage() {
 
   useEffect(() => {
     const checkUser = async () => {
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.getSession()
-
-      if (error || !session?.user) {
+      const { data, error } = await supabase.auth.getSession()
+      if (error || !data.session?.user) {
+        setLoading(false)
         router.push("/login")
         return
       }
 
-      // التحقق من دور المستخدم
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("role")
-        .eq("id", session.user.id)
+        .eq("id", data.session.user.id)
         .single()
 
       if (profileError || profile?.role !== "admin") {
+        setLoading(false)
         router.push("/")
         return
       }
