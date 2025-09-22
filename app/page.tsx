@@ -1,4 +1,4 @@
-import { Header } from "@/components/header"
+import { Header } from "@/components/Header"
 import { Hero } from "@/components/hero"
 import { FeaturedProducts } from "@/components/featured-products"
 import { Categories } from "@/components/categories"
