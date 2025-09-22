@@ -8,16 +8,17 @@ import Link from "next/link"
 import { SearchBar } from "@/components/search-bar"
 import { CurrencySelector } from "@/components/currency-selector"
 import { useFavorites } from "@/lib/favorites-store"
-// ⬇️ استدعِ hook الجلسة (مثال NextAuth)
-import { useSession, signOut } from "next-auth/react"
+
+// ⚠️ أزلنا استيراد next-auth
+// import { useSession, signOut } from "next-auth/react"
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const { getFavoritesCount } = useFavorites()
   const favoritesCount = getFavoritesCount()
-  const { data: session } = useSession()
 
-  const isLoggedIn = !!session
+  // لا يوجد منطق جلسة الآن
+  const isLoggedIn = false
 
   return (
     <header className="sticky top-0 z-50 w-full border-b backdrop-blur supports-[backdrop-filter]:bg-background/60"
@@ -43,12 +44,8 @@ export function Header() {
             <Link href="/about" className="nav-link">من نحن</Link>
             <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="nav-link">تواصل معنا</a>
 
-            {/* 👇 استبدل الرابط حسب حالة الدخول */}
-            {isLoggedIn ? (
-              <button onClick={() => signOut()} className="nav-link">تسجيل الخروج</button>
-            ) : (
-              <Link href="/login" className="nav-link">تسجيل الدخول</Link>
-            )}
+            {/* زر تسجيل الدخول ثابت حالياً */}
+            <Link href="/login" className="nav-link">تسجيل الدخول</Link>
           </nav>
 
           {/* ===== Actions ===== */}
@@ -69,7 +66,7 @@ export function Header() {
               </Button>
             </Link>
 
-            {/* User */}
+            {/* User icon معطل حالياً */}
             {isLoggedIn && (
               <Link href="/account" className="shrink-0">
                 <Button variant="ghost" size="icon" className="hover:scale-110 active:scale-95 transition-transform">
@@ -105,11 +102,7 @@ export function Header() {
               <Link href="/" className="nav-link">الصفحة الرئيسية</Link>
               <Link href="/about" className="nav-link">من نحن</Link>
               <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="nav-link">تواصل معنا</a>
-              {isLoggedIn ? (
-                <button onClick={() => signOut()} className="nav-link text-left">تسجيل الخروج</button>
-              ) : (
-                <Link href="/login" className="nav-link">تسجيل الدخول</Link>
-              )}
+              <Link href="/login" className="nav-link">تسجيل الدخول</Link>
             </nav>
           </div>
         )}
