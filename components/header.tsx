@@ -8,31 +8,26 @@ import Link from "next/link"
 import { SearchBar } from "@/components/search-bar"
 import { CurrencySelector } from "@/components/currency-selector"
 import { useFavorites } from "@/lib/favorites-store"
+// ⬇️ استدعِ hook الجلسة (مثال NextAuth)
+import { useSession, signOut } from "next-auth/react"
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const { getFavoritesCount } = useFavorites()
   const favoritesCount = getFavoritesCount()
+  const { data: session } = useSession()
+
+  const isLoggedIn = !!session
 
   return (
-    <header
-      className="sticky top-0 z-50 w-full border-b backdrop-blur supports-[backdrop-filter]:bg-background/60"
-      style={{ backgroundColor: "rgba(127, 92, 126, 0.1)" }}
-    >
+    <header className="sticky top-0 z-50 w-full border-b backdrop-blur supports-[backdrop-filter]:bg-background/60"
+            style={{ backgroundColor: "rgba(127, 92, 126, 0.1)" }}>
       <div className="container mx-auto px-4">
         <div className="flex h-20 items-center justify-between gap-3">
-          {/* Logo - responsive: small on mobile, big on desktop */}
-          <Link
-            href="/"
-            className="flex items-center cursor-pointer max-w-[48%] md:max-w-none"
-          >
-            <span
-              className="block truncate text-3xl md:text-6xl font-black bg-gradient-to-r from-[#7f5c7e] to-purple-700 bg-clip-text text-transparent font-cinzel-decorative tracking-wider drop-shadow-lg hover:scale-105 transition-transform duration-200 active:scale-95"
-              style={{
-                textShadow: "3px 3px 6px rgba(127, 92, 126, 0.4)",
-                fontFamily: "var(--font-cinzel-decorative)",
-              }}
-            >
+          {/* Logo */}
+          <Link href="/" className="flex items-center cursor-pointer max-w-[48%] md:max-w-none">
+            <span className="block truncate text-3xl md:text-6xl font-black bg-gradient-to-r from-[#7f5c7e] to-purple-700 bg-clip-text text-transparent font-cinzel-decorative tracking-wider drop-shadow-lg hover:scale-105 transition-transform duration-200 active:scale-95"
+                  style={{ textShadow: "3px 3px 6px rgba(127, 92, 126, 0.4)" }}>
               TOLAY
             </span>
           </Link>
@@ -44,55 +39,51 @@ export function Header() {
 
           {/* Navigation links (desktop) */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="text-lg font-bold text-foreground hover:text-[#7f5c7e] transition-colors font-tajawal hover:scale-105 active:scale-95">
-              الصفحة الرئيسية
-            </Link>
-            <Link href="/about" className="text-lg font-bold text-foreground hover:text-[#7f5c7e] transition-colors font-tajawal hover:scale-105 active:scale-95">
-              من نحن
-            </Link>
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-lg font-bold text-foreground hover:text-[#7f5c7e] transition-colors font-tajawal hover:scale-105 active:scale-95">
-              تواصل معنا
-            </a>
-            <Link href="/login" className="text-lg font-bold text-foreground hover:text-[#7f5c7e] transition-colors font-tajawal hover:scale-105 active:scale-95">
-              تسجيل الدخول
-            </Link>
+            <Link href="/" className="nav-link">الصفحة الرئيسية</Link>
+            <Link href="/about" className="nav-link">من نحن</Link>
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="nav-link">تواصل معنا</a>
+
+            {/* 👇 استبدل الرابط حسب حالة الدخول */}
+            {isLoggedIn ? (
+              <button onClick={() => signOut()} className="nav-link">تسجيل الخروج</button>
+            ) : (
+              <Link href="/login" className="nav-link">تسجيل الدخول</Link>
+            )}
           </nav>
 
-          {/* ===== Actions (desktop + mobile) ===== */}
-          {/* min-w-0 يسمح بالـtruncate داخل الحاوية */}
+          {/* ===== Actions ===== */}
           <div className="flex items-center gap-3 md:gap-4 min-w-0">
             <CurrencySelector />
 
-            {/* search icon only on desktop */}
             <Button variant="ghost" size="icon" className="hidden md:flex hover:scale-110 active:scale-95 transition-transform shrink-0">
               <Search className="h-5 w-5" />
             </Button>
 
-            {/* favorites (keep in place) */}
+            {/* Favorites */}
             <Link href="/account?tab=favorites" className="shrink-0">
               <Button variant="ghost" size="icon" className="hover:scale-110 active:scale-95 transition-transform relative">
                 <Heart className={`h-5 w-5 ${favoritesCount > 0 ? "fill-[#7f5c7e] text-[#7f5c7e]" : ""}`} />
                 {favoritesCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-[#7f5c7e] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
-                    {favoritesCount}
-                  </span>
+                  <span className="badge">{favoritesCount}</span>
                 )}
               </Button>
             </Link>
 
-            {/* user - keep in place */}
-            <Link href="/account" className="shrink-0">
-              <Button variant="ghost" size="icon" className="hover:scale-110 active:scale-95 transition-transform">
-                <User className="h-5 w-5" />
-              </Button>
-            </Link>
+            {/* User */}
+            {isLoggedIn && (
+              <Link href="/account" className="shrink-0">
+                <Button variant="ghost" size="icon" className="hover:scale-110 active:scale-95 transition-transform">
+                  <User className="h-5 w-5" />
+                </Button>
+              </Link>
+            )}
 
-            {/* Cart - make sure it's shrink-0 so it stays visible */}
+            {/* Cart */}
             <div className="shrink-0">
               <CartDrawer />
             </div>
 
-            {/* Mobile Menu Button - visible only on mobile (md:hidden) */}
+            {/* Mobile menu */}
             <Button
               variant="ghost"
               size="icon"
@@ -111,10 +102,14 @@ export function Header() {
               <SearchBar />
             </div>
             <nav className="flex flex-col space-y-4">
-              <Link href="/" className="text-lg font-bold text-foreground hover:text-[#7f5c7e] transition-colors font-tajawal hover:scale-105 active:scale-95">الصفحة الرئيسية</Link>
-              <Link href="/about" className="text-lg font-bold text-foreground hover:text-[#7f5c7e] transition-colors font-tajawal hover:scale-105 active:scale-95">من نحن</Link>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-lg font-bold text-foreground hover:text-[#7f5c7e] transition-colors font-tajawal hover:scale-105 active:scale-95">تواصل معنا</a>
-              <Link href="/login" className="text-lg font-bold text-foreground hover:text-[#7f5c7e] transition-colors font-tajawal hover:scale-105 active:scale-95">تسجيل الدخول</Link>
+              <Link href="/" className="nav-link">الصفحة الرئيسية</Link>
+              <Link href="/about" className="nav-link">من نحن</Link>
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="nav-link">تواصل معنا</a>
+              {isLoggedIn ? (
+                <button onClick={() => signOut()} className="nav-link text-left">تسجيل الخروج</button>
+              ) : (
+                <Link href="/login" className="nav-link">تسجيل الدخول</Link>
+              )}
             </nav>
           </div>
         )}
