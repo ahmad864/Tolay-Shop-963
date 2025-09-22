@@ -10,7 +10,7 @@ import { useCart } from "@/lib/cart-store"
 import { useCurrency } from "@/lib/currency-store"
 import { useFavorites } from "@/lib/favorites-store"
 import Link from "next/link"
-import { Header } from "@/components/header"
+import { Header } from "@/components/Header"
 import { Footer } from "@/components/footer"
 import { getProductsByCategory } from "@/lib/category-products"
 
